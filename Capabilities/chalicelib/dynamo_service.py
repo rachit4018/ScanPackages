@@ -93,7 +93,7 @@ class DynamoService:
         """
         response = self.dynamodb.delete_item(
             TableName=self.table_name,
-            Key={'card_id': card_id}
+            Key={'card_id': {'S': card_id}}
         )
         return response['ResponseMetadata']['HTTPStatusCode'] == 200
 

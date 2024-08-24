@@ -152,9 +152,9 @@ def put_card():
 
 @app.route('/cards/{user_id}/{card_id}', methods=['DELETE'], cors=True)
 def delete_card(user_id, card_id):
-    print(user_id)
+    print("+++++++++++++++++++")
     print(card_id)
-    dynamo_service.delete_card(user_id, card_id)
+    return dynamo_service.delete_card(user_id, card_id)
 
 @app.route('/card/{user_id}/{card_id}', methods=['GET'], cors=True)
 def get_card(user_id, card_id):
