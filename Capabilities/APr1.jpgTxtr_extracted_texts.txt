@@ -1,0 +1,1 @@
+[['card_id', 'b_name', 'Telephone', 'Email', 'Website', 'Address', 'user_id'], ['31d2b9bc-c622-4d62-95f3-66e9f6f9c96e', 'Mushfeqa Azam', [], '', '', 'YHM6', '100']]

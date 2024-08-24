@@ -1,3 +1,6 @@
 boto3
 chalice
 requests
+google-cloud-vision
+pillow
+pytesseract

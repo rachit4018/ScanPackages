@@ -107,7 +107,9 @@ function FileUpload(props) {
             Accept: "application/json",
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(),
+          body: JSON.stringify({
+            fileUrl: fileUrl,
+          }),
         })
           .then((response) => response.json())
           .then((res) => {
