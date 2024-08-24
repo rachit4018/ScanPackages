@@ -38,28 +38,24 @@ class DynamoService:
         """
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table("PackageScan")
-        received_date = text.get('received_date')
-        b_name = text.get('b_name')
-        card_id = text.get('card_id')
-
-        # Check if an item with the same received_date and b_name exists
+        received_date = text['recieved_date']
+        b_name = text['b_name']
+        
+        # Check if an item with the same received_date and b_name exists using the GSI
         response = table.query(
-                KeyConditionExpression=Key('card_id').eq(card_id)
-            )
-            
-            # Check if the item exists
+            IndexName='b_name-recieved_date-index',  # Name of your GSI
+            KeyConditionExpression=Key('b_name').eq(b_name) & Key('recieved_date').eq(received_date)
+        )
+        
+        # Check if the item exists
         if response['Items']:
-                # Check if the existing item matches the received_date and b_name
-                for item in response['Items']:
-                    if item.get('received_date') == received_date and item.get('b_name') == b_name:
-                        print("Item already exists with the same received_date and b_name.")
-                        return False 
-                    else:
-
+            print("Item already exists with the same received_date and b_name.")
+            return False
+        
         # If no such item exists, put the new item
-                        table.put_item(Item=text)
-                        print(f"Created new item with details: {text}")
-                        return True
+        table.put_item(Item=text)
+        print(f"Created new item with details: {text}")
+        return True
 
     def update_card(self, text):
         """Updates a new card record

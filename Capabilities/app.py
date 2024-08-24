@@ -106,23 +106,23 @@ def recognize_image_entities(image_id):
 # Convert to dictionary
     comp_dict = dict(zip(keys, values))
     result = dynamo_service.store_card(comp_dict)
+    print("#########################")
+    print(result)
     if not result:
         # Return custom error message if storing failed
         return {
             'status': 'error',
             'message': 'Failed to store card. Item may already exist or there was an error.'
         }
+    else:
     
     # If successful, return data for further processing or success
-    comp_lines = [
-        ['card_id', 'b_name', 'Telephone', 'Email', 'Website', 'Address', 'user_id','recieved_date'],
+        comp_lines = [
+            ['card_id', 'b_name', 'Telephone', 'Email', 'Website', 'Address', 'user_id','recieved_date'],
         [comp_dict['card_id'], comp_dict['b_name'], comp_dict['Telephone'], comp_dict['Email'], comp_dict['Website'], comp_dict['Address'], comp_dict['user_id'], comp_dict['recieved_date']]
-    ]
+        ]
     
-    return {
-        'status': 'success',
-        'data': comp_lines
-    }
+        return comp_lines
 @app.route('/cards/{user_id}', methods=['GET'], cors=True)
 def get_cards(user_id):
     user_id = '100'
