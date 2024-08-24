@@ -3,7 +3,7 @@ import uuid
 from boto3.dynamodb.conditions import Attr
 from chalicelib.business_card import BusinessCard
 from chalicelib.business_card_list import BusinessCardList
-
+from boto3.dynamodb.conditions import Key
 
 class CustomText:
     def __init__(self, items):
@@ -28,31 +28,38 @@ class DynamoService:
         self.dynamodb = boto3.resource('dynamodb','ca-central-1')
 
     def store_card(self, text):
-        """Creates a new card record
-        print
+        """Creates a new card record if not already present
+
         Args:
-            card (BusinessCard): Card to be included in the DynamoBD
+            text (dict): Card details to be included in the DynamoDB
 
         Returns:
             bool: Operation result
         """
-
-        # Ensure primary key - low collision
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table("PackageScan")
-        print('===================')
-        print(text)
-        # Create a new item with default values
-        # item = {
-        #     "card_id":text[0],
-        #     "name": text[1],
-        #     "phone_numbers": text[2],
-        #     "email": text[3],
-        #     "website": text[4],
-        #     "address": text[5]
-        #     }
-        table.put_item(Item=text)
-        print(f"Created new item with name {text}")
+        received_date = text.get('received_date')
+        b_name = text.get('b_name')
+        card_id = text.get('card_id')
+
+        # Check if an item with the same received_date and b_name exists
+        response = table.query(
+                KeyConditionExpression=Key('card_id').eq(card_id)
+            )
+            
+            # Check if the item exists
+        if response['Items']:
+                # Check if the existing item matches the received_date and b_name
+                for item in response['Items']:
+                    if item.get('received_date') == received_date and item.get('b_name') == b_name:
+                        print("Item already exists with the same received_date and b_name.")
+                        return False 
+                    else:
+
+        # If no such item exists, put the new item
+                        table.put_item(Item=text)
+                        print(f"Created new item with details: {text}")
+                        return True
 
     def update_card(self, text):
         """Updates a new card record
