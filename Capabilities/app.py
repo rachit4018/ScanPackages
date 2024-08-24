@@ -11,6 +11,7 @@ from chalicelib import recognition_service
 from chalicelib import textract_service
 from chalicelib import comprehend_services
 from chalicelib import named_entity_recognition_service
+from datetime import datetime
 
 app = Chalice(app_name='Capabilities')
 app.debug = True
@@ -31,6 +32,7 @@ DJANGO_BASE_URL = 'https://127.0.0.0:8000'
 #####
 # Django Authentication Routes
 #####
+recieved_date = datetime.now().strftime('%Y-%m-%d')
 
 @app.route('/login', methods=['POST'], cors=True)
 def login():
@@ -95,8 +97,8 @@ def recognize_image_entities(image_id):
             address = values[i]
     card_id = str(uuid.uuid4())
     user_id = '100'
-    merge = [card_id,b_name,telephone,email,website,address,user_id]
-    comp_lines = [['card_id','b_name','Telephone','Email','Website','Address','user_id'],[card_id,b_name,telephone,email,website,address,user_id]]
+    merge = [card_id,b_name,telephone,email,website,address,user_id, recieved_date]
+    comp_lines = [['card_id','b_name','Telephone','Email','Website','Address','user_id','recieved_date'],[card_id,b_name,telephone,email,website,address,user_id,recieved_date]]
     print("========complines========")
     keys = comp_lines[0]  # ['Name', 'Telephone', 'Email', 'Website', 'Address']
     values = comp_lines[1]  # [name, telephone, email, website, address]
@@ -122,6 +124,7 @@ def get_cards(user_id):
             'Email': item['Email'],
             'Website': item['Website'],
             'Address': item['Address'],
+            'recieved_date': item['recieved_date'],
         }
         cards_list.append(obj)
         index += 1
