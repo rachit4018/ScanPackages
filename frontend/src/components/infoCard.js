@@ -1,12 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import "../styles/infoCard.css";
-
-InfoCard.propTypes = {};
 
 const serverUrl = "http://127.0.0.1:8000";
 
 function InfoCard(props) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate(); // Call useNavigate at the top level of the component
 
   const handleClose = () => {
     setOpen(false);
@@ -14,7 +14,8 @@ function InfoCard(props) {
 
   const onSubmit = () => {
     console.log("props123: ", props.cardDetails);
-// Api call 
+
+    // API call
     fetch(serverUrl + "/cards", {
       method: "POST",
       headers: {
@@ -25,18 +26,10 @@ function InfoCard(props) {
         card_id: props.cardDetails.card_id,
         user_id: localStorage.getItem("user_sub") || "",
         b_name: props.cardDetails.b_name ? [props.cardDetails.b_name] : [""],
-        Telephone: props.cardDetails.phone
-          ? [props.cardDetails.phone]
-          : [""],
-        Email: props.cardDetails.email
-          ? [props.cardDetails.email]
-          : [""],
-        Website: props.cardDetails.website
-          ? props.cardDetails.website
-          : "",
-        Address: props.cardDetails.address
-          ? props.cardDetails.address
-          : "",
+        Telephone: props.cardDetails.phone ? [props.cardDetails.phone] : [""],
+        Email: props.cardDetails.email ? [props.cardDetails.email] : [""],
+        Website: props.cardDetails.website ? props.cardDetails.website : "",
+        Address: props.cardDetails.address ? props.cardDetails.address : "",
         image_storage: props.cardDetails.image_url,
       }),
     })
@@ -44,10 +37,12 @@ function InfoCard(props) {
       .then((res) => {
         console.log("res555", res);
         setOpen(true);
+        navigate("/cards"); // Use navigate here
       })
       .catch((error) => {
         console.log(error);
         setOpen(true);
+        navigate("/cards"); // Use navigate here in case of error as well
       });
   };
 
