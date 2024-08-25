@@ -70,21 +70,21 @@ class DynamoService:
         table = dynamodb.Table("PackageScan")
         print("!!!!!!!!!")
         print(text)
-        id_to_update = text['card_id']
+        id_to_update = text['package_id']
         
-        key = {'card_id': id_to_update}
-        update_expression = 'SET b_name = :b_name, Telephone = :Telephone, Email = :Email, Website = :Website, Address =:Address'
-        expression_attribute_values = {':b_name': text['b_name'], ':Telephone': text['Telephone'], ':Email': text['Email'], ':Website':text['Website'], ':Address':text['Address']}
+        key = {'package_id': id_to_update}
+        update_expression = 'SET b_name = :b_name, Email = :Email, Address =:Address, tracking_id =:tracking_id'
+        expression_attribute_values = {':b_name': text['b_name'], ':Email': text['Email'], ':Address':text['Address'], ':tracking_id':text['tracking_id']}
 
         response = table.update_item(
             Key=key,
             UpdateExpression=update_expression,
             ExpressionAttributeValues=expression_attribute_values,
-            ConditionExpression=Attr('card_id').eq(id_to_update)
+            ConditionExpression=Attr('package_id').eq(id_to_update)
         ) 
         return response['ResponseMetadata']['HTTPStatusCode'] == 200
 
-    def delete_card(self, user_id, card_id):
+    def delete_card(self, user_id, package_id):
         """Deletes a card record in DynamoDB
 
         Args:
@@ -96,7 +96,7 @@ class DynamoService:
         """
         response = self.dynamodb.delete_item(
             TableName=self.table_name,
-            Key={'card_id': {'S': card_id}}
+            Key={'package_id': {'S': package_id}}
         )
         return response['ResponseMetadata']['HTTPStatusCode'] == 200
 
@@ -114,15 +114,14 @@ class DynamoService:
         table = dynamodb.Table("PackageScan")
         print(text[0])
         # Create a new item with default values
-        if len(text) >= 6:
+        if len(text) >= 5:
         # Create a new item with default values
                  item = {
-            "card_id": text[0],
+            "package_id": text[0],
             "name": text[1],
-            "phone_numbers": text[2],
-            "email": text[3],
-            "website": text[4],
-            "address": text[5]
+            "email": text[2],
+            "address": text[3],
+            "tracking_id": text[4]
             }
                  table.put_item(Item=item)
         print(f"Created new item with name {text}")
