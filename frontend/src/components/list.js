@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import ReactDOM from "react-dom";
 import CRUDTable, {
   Fields,
   Field,
@@ -7,7 +6,6 @@ import CRUDTable, {
   UpdateForm,
   DeleteForm,
 } from "react-crud-table";
-
 import "../styles/list.css";
 
 const serverUrl = "http://127.0.0.1:8000";
@@ -44,18 +42,19 @@ const service = {
   fetchItems: (payload) => {
     let user_id = 100;
     try {
+      let promise = fetch(serverUrl + "/cards/" + user_id, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => response.json())
+        .catch((err) => console.error);
 
-        let promise = fetch(serverUrl + "/cards/"+ user_id, {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }).then((response) => response.json()).catch(err => console.error);
-    
-        return Promise.resolve(promise ? promise : []);
+      return Promise.resolve(promise ? promise : []);
     } catch (err) {
-        console.error(err.message)
+      console.error(err.message);
     }
   },
   create: (card) => {
@@ -66,7 +65,7 @@ const service = {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        card_id: card.card_id? card.card_id: "",
+        card_id: card.card_id ? card.card_id : "",
         user_id: 100,
         Telephone: card.Telephone ? [card.Telephone] : [""],
         Email: card.Email ? card.Email : [""],
@@ -81,7 +80,6 @@ const service = {
     return Promise.resolve(promise);
   },
   update: (data) => {
-
     let user_id = 100;
     data["user_id"] = user_id;
     let promise = fetch(serverUrl + "/cards", {
@@ -94,23 +92,20 @@ const service = {
     }).then((response) => response.json());
 
     return Promise.resolve(promise);
-
-    // const card = cards.find(t => t.id === data.id);
-    // card.title = data.title;
-    // card.description = data.description;
-    // return Promise.resolve(card);
   },
+  // Updated delete function
   delete: (data) => {
     let user_id = 100;
-    let promise = fetch(serverUrl + "/cards/" + user_id + "/" + data.card_id, {
+    return fetch(serverUrl + "/cards/" + user_id + "/" + data.card_id, {
       method: "DELETE",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-    }).then((response) => response.json());
-
-    return Promise.resolve(promise);
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json()
+      );
   },
 };
 
@@ -137,9 +132,6 @@ function List(props) {
   return (
     <div>
       <div style={styles.container}>
-        {/* <div className="input-container ic1" style={{ border: "2px solid grey"}}>
-                <input id="search" className="input" value={search} onChange={(e)=>handleSearchChange(e)} type="text" placeholder="Search " />
-            </div> */}
         <CRUDTable
           caption="Cards"
           fetchItems={(payload) => service.fetchItems(payload)}
@@ -156,13 +148,6 @@ function List(props) {
               render={DescriptionRenderer}
             />
           </Fields>
-          {/* <CreateForm
-                title="Card Creation"
-                message="Create a new card!"
-                trigger="Create Card"
-                onSubmit={(card) => {service.create(card)}}
-                submitText="Create"
-              /> */}
 
           <UpdateForm
             title="Card Update Process"
@@ -170,35 +155,20 @@ function List(props) {
             trigger="Update"
             onSubmit={(card) => service.update(card)}
             submitText="Update"
-            // validate={(values) => {
-            //   const errors = {};
-
-            //   if (!values.id) {
-            //     errors.id = 'Please, provide id';
-            //   }
-
-            //   if (!values.name) {
-            //     errors.title = 'Please, provide task\'s title';
-            //   }
-
-            //   if (!values.email) {
-            //     errors.description = 'Please, provide task\'s description';
-            //   }
-
-            //   return errors;
-            // }}
           />
 
           <DeleteForm
             title="Card Delete Process"
-            message="Are you sure you want to delete the task?"
+            message="Are you sure you want to delete this card?"
             trigger="Delete"
-            onSubmit={(card) => service.delete(card)}
+            onSubmit={(card) => 
+              service.delete(card)}
             submitText="Delete"
             validate={(values) => {
               const errors = {};
-              if (!values.id) {
-                errors.id = "Please, provide id";
+              // Validate card_id instead of id
+              if (!values.card_id) {
+                errors.card_id = "Please, provide card_id";
               }
               return errors;
             }}
