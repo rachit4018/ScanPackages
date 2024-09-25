@@ -6,8 +6,8 @@ import sys
 
 class NamedEntityRecognitionService:
     def __init__(self):
-        self.comprehendmedical = boto3.client('comprehendmedical')
-        self.comprehend = boto3.client('comprehend')
+        self.comprehendmedical = boto3.client('comprehendmedical', region_name='us-east-1')
+        self.comprehend = boto3.client('comprehend', region_name='us-east-1')
         
     
     def detect_entities(self, text):

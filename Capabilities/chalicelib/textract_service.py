@@ -3,7 +3,7 @@ import boto3
 
 class TextractService:
     def __init__(self, storage_service):
-        self.client = boto3.client('textract')
+        self.client = boto3.client('textract', region_name='us-east-1')
         self.bucket_name = storage_service.get_storage_location()
 
     def detect_text(self, file_name):
