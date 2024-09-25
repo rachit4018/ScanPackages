@@ -11,6 +11,7 @@ from chalicelib import recognition_service
 from chalicelib import textract_service
 from chalicelib import comprehend_services
 from chalicelib import named_entity_recognition_service
+from datetime import datetime
 
 app = Chalice(app_name='Capabilities')
 app.debug = True
@@ -31,6 +32,7 @@ DJANGO_BASE_URL = 'https://127.0.0.0:8000'
 #####
 # Django Authentication Routes
 #####
+recieved_date = datetime.now().strftime('%Y-%m-%d')
 
 @app.route('/login', methods=['POST'], cors=True)
 def login():
@@ -75,37 +77,63 @@ def recognize_image_entities(image_id):
     website = ''
     address = ''
     URL =''
+    package_id = ''
+    con = []
+    tracking_id = ''
     #print(text_lines)
     for text in text_lines:
             b_name += text['text'] + ' '
+    for conf in text_lines:
+            con.append(conf['confidence'])
+    #print("confidence======",con) 
     comprehend_line = comprehend_service.detect_entity(b_name)
     labels = comprehend_line[0]
     values = comprehend_line[1]
+    scores = comprehend_line[2]
+    max_id_score=0
+    max_id = None
     #print(comprehend_line)
     for i in range(len(labels)):
         if labels[i] == 'NAME' or labels[i] == 'PROFESSION':
             b_name = values[i]
-        elif labels[i] == 'PHONE_OR_FAX':
-            telephone = values[i]
         elif labels[i] == 'EMAIL':
             email = values[i]
-        elif labels[i] == 'URL':
-            website = values[i]
         elif labels[i] == 'ADDRESS':
             address = values[i]
-    card_id = str(uuid.uuid4())
+        elif labels[i] == 'ID':
+            
+            if scores[i] > max_id_score:
+                max_id_score = scores[i]
+                max_id = values[i]
+    package_id = str(uuid.uuid4())
     user_id = '100'
-    merge = [card_id,b_name,telephone,email,website,address,user_id]
-    comp_lines = [['card_id','b_name','Telephone','Email','Website','Address','user_id'],[card_id,b_name,telephone,email,website,address,user_id]]
+    tracking_id = max_id
+    merge = [package_id,b_name,email,address,user_id, recieved_date, tracking_id]
+    comp_lines = [['package_id','b_name','Email','Address','user_id','recieved_date', 'tracking_id'],[package_id,b_name,email,address,user_id,recieved_date, tracking_id]]
     print("========complines========")
-    keys = comp_lines[0]  # ['Name', 'Telephone', 'Email', 'Website', 'Address']
-    values = comp_lines[1]  # [name, telephone, email, website, address]
+    keys = comp_lines[0] 
+    values = comp_lines[1]
 
 # Convert to dictionary
     comp_dict = dict(zip(keys, values))
-    dynamo_service.store_card(comp_dict)
-    print(comp_dict)
-    return comp_lines
+    result = dynamo_service.store_card(comp_dict)
+    print("#########################")
+    print(result)
+    if not result:
+        # Return custom error message if storing failed
+        return {
+            'status': 'error',
+            'message': 'Failed to store card. Item may already exist or there was an error.'
+        }
+    else:
+    
+    # If successful, return data for further processing or success
+        comp_lines = [
+            ['package_id', 'b_name', 'Email', 'Address', 'user_id','recieved_date', 'tracking_id'],
+        [comp_dict['package_id'], comp_dict['b_name'], comp_dict['Email'], comp_dict['Address'], comp_dict['user_id'], comp_dict['recieved_date'], comp_dict['tracking_id']]
+        ]
+    
+        return comp_lines
 @app.route('/cards/{user_id}', methods=['GET'], cors=True)
 def get_cards(user_id):
     user_id = '100'
@@ -115,13 +143,12 @@ def get_cards(user_id):
     print(cardlist_container)
     for item in cardlist_container:
         obj = {
-            'user_id': item['user_id'],
-            'card_id': item['card_id'],
+            'package_id': item['package_id'],
             'b_name': item['b_name'],
-            'Telephone': item['Telephone'],
             'Email': item['Email'],
-            'Website': item['Website'],
             'Address': item['Address'],
+            'recieved_date': item['recieved_date'],
+            'tracking_id': item['tracking_id']
         }
         cards_list.append(obj)
         index += 1
@@ -134,10 +161,9 @@ def post_card():
     print("+++++++++++++++")
     print(req_body)
     req_body['b_name'] = req_body['b_name'][0]
-    req_body['Telephone'] = req_body['Telephone'][0]
     req_body['Email'] = req_body['Email'][0]
     result = dynamo_service.update_card(req_body)
-    new_card_id = req_body['card_id']
+    new_card_id = req_body['package_id']
     return new_card_id
 
 @app.route('/cards', methods=['PUT'], cors=True, content_types=['application/json'])
@@ -146,16 +172,15 @@ def put_card():
     print('@@@@@@@@@@@')
     print(req_body)
     req_body['b_name'] = req_body['b_name']
-    req_body['Telephone'] = req_body['Telephone']
     req_body['Email'] = req_body['Email']
     result = dynamo_service.update_card(req_body)
 
-@app.route('/cards/{user_id}/{card_id}', methods=['DELETE'], cors=True)
-def delete_card(user_id, card_id):
-    print(user_id)
-    print(card_id)
-    dynamo_service.delete_card(user_id, card_id)
+@app.route('/cards/{user_id}/{package_id}', methods=['DELETE'], cors=True)
+def delete_card(user_id, package_id):
+    print("+++++++++++++++++++")
+    print(package_id)
+    return dynamo_service.delete_card(user_id, package_id)
 
-@app.route('/card/{user_id}/{card_id}', methods=['GET'], cors=True)
-def get_card(user_id, card_id):
-    return dynamo_service.get_card(user_id, card_id)
+@app.route('/card/{user_id}/{package_id}', methods=['GET'], cors=True)
+def get_card(user_id, package_id):
+    return dynamo_service.get_card(user_id, package_id)

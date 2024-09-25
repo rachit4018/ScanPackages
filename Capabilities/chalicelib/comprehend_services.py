@@ -8,11 +8,24 @@ class ComprehendServices:
     def __init__(self, storage_service):
         self.client = boto3.client('comprehendmedical')
         self.bucket_name = storage_service.get_storage_location()
-    def detect_entity(self,name):
+    def detect_entity(self, name):
         entities = self.client.detect_entities(Text=name)
-        #print(entities)
-        ent = [e['Type'] for e in entities['Entities']]
-        medical_conditions = [e['Text'] for e in entities['Entities']]
-        #print(ent)
-        #print(medical_conditions)
-        return [ent,medical_conditions]
+        print("entities = ", entities)
+
+        filtered_medical_conditions = []
+        ent = []
+        score = []
+
+        for e in entities['Entities']:
+            if e['Type'] != 'ID' or e['Score'] > 0.97:
+                filtered_medical_conditions.append(e['Text'])
+                ent.append(e['Type'])
+                score.append(e['Score'])
+
+        print("******************************")
+        print(ent)
+        print(filtered_medical_conditions)
+        print(score)
+
+        return [ent, filtered_medical_conditions,score]
+
