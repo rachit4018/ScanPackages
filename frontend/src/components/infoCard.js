@@ -23,13 +23,13 @@ function InfoCard(props) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        card_id: props.cardDetails.card_id,
+        package_id: props.cardDetails.package_id,
         user_id: localStorage.getItem("user_sub") || "",
         b_name: props.cardDetails.b_name ? [props.cardDetails.b_name] : [""],
-        Telephone: props.cardDetails.phone ? [props.cardDetails.phone] : [""],
         Email: props.cardDetails.email ? [props.cardDetails.email] : [""],
-        Website: props.cardDetails.website ? props.cardDetails.website : "",
         Address: props.cardDetails.address ? props.cardDetails.address : "",
+        recieved_date: props.cardDetails.recieved_date ? props.cardDetails.recieved_date : "",
+        tracking_id: props.cardDetails.tracking_id ? props.cardDetails.tracking_id : "",
         image_storage: props.cardDetails.image_url,
       }),
     })
@@ -65,25 +65,12 @@ function InfoCard(props) {
           </label>
         </div>
 
-        <div className="input-container">
-          <input
-            id="phone"
-            className="input"
-            type="text"
-            placeholder=" "
-            onChange={(event) => props.handleChangeInput(event, "phone")}
-            value={props.cardDetails.phone || ""}
-          />
-          <label htmlFor="phone" className="placeholder">
-            Phone
-          </label>
-        </div>
-
+    
         <div className="input-container">
           <input
             id="email"
             className="input"
-            type="text"
+            type="email"
             placeholder=" "
             onChange={(event) => props.handleChangeInput(event, "email")}
             value={props.cardDetails.email || ""}
@@ -93,19 +80,6 @@ function InfoCard(props) {
           </label>
         </div>
 
-        <div className="input-container">
-          <input
-            id="website"
-            className="input"
-            type="text"
-            placeholder=" "
-            onChange={(event) => props.handleChangeInput(event, "website")}
-            value={props.cardDetails.website || ""}
-          />
-          <label htmlFor="website" className="placeholder">
-            Website
-          </label>
-        </div>
 
         <div className="input-container">
           <input
@@ -121,6 +95,22 @@ function InfoCard(props) {
           </label>
         </div>
 
+        <div className="input-container">
+          <input
+            id="tracking_id"
+            className="input"
+            type="text"
+            placeholder=" "
+            onChange={(event) => props.handleChangeInput(event, "tracking_id")}
+            value={props.cardDetails.tracking_id || ""}
+          />
+          <label htmlFor="tracking_id" className="placeholder">
+            Tracking ID
+          </label>
+         
+        </div>
+
+        
         <button type="button" className="submit" onClick={onSubmit}>
           Submit
         </button>

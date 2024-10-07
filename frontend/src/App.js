@@ -7,6 +7,7 @@ import Signup from './components/signUp';
 // import Logout from './components/Logout';
 import UploadImage from './components/fileUpload';
 import CardList from './components/list';
+import VerifyEmail from './components/verifyEmail';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path='/verifyEmail' element={<VerifyEmail />} />
         {/* <Route path="/logout" element={<Logout />} /> */}
         <Route path="/upload-image" element={<UploadImage />} />
         <Route path="/cards" element={<CardList userId="100" />} />

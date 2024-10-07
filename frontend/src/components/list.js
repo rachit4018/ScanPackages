@@ -65,14 +65,14 @@ const service = {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        card_id: card.card_id ? card.card_id : "",
+        package_id: card.package_id ? card.package_id : "",
         user_id: 100,
-        Telephone: card.Telephone ? [card.Telephone] : [""],
         Email: card.Email ? card.Email : [""],
         b_name: card.b_name ? card.b_name : "",
-        Website: card.Website ? card.Website : "",
         Address: card.Address ? card.Address : "",
         user_id: card.user_id ? card.user_id : "",
+        recieved_date: card.recieved_date ? card.recieved_date : "",
+        tracking_id: card.tracking_id ? card.tracking_id : "",
         image_storage: card.image_url ? card.image_url : "",
       }),
     }).then((response) => response.json());
@@ -96,7 +96,7 @@ const service = {
   // Updated delete function
   delete: (data) => {
     let user_id = 100;
-    return fetch(serverUrl + "/cards/" + user_id + "/" + data.card_id, {
+    return fetch(serverUrl + "/cards/" + user_id + "/" + data.package_id, {
       method: "DELETE",
       headers: {
         Accept: "application/json",
@@ -137,16 +137,16 @@ function List(props) {
           fetchItems={(payload) => service.fetchItems(payload)}
         >
           <Fields>
-            <Field name="card_id" label="Id" hideInCreateForm readOnly />
+            <Field name="package_id" label="Id" hideInCreateForm readOnly />
             <Field name="b_name" label="Name" />
-            <Field name="Telephone" label="Phone" />
             <Field name="Email" label="Email" />
-            <Field name="Website" label="Website" />
             <Field
               name="Address"
               label="address"
               render={DescriptionRenderer}
             />
+            <Field name="recieved_date" label="recieved_date" hideInCreateForm readOnly/>
+            <Field name="tracking_id" label="tracking_id" />
           </Fields>
 
           <UpdateForm
@@ -166,9 +166,9 @@ function List(props) {
             submitText="Delete"
             validate={(values) => {
               const errors = {};
-              // Validate card_id instead of id
-              if (!values.card_id) {
-                errors.card_id = "Please, provide card_id";
+              // Validate package_id instead of id
+              if (!values.package_id) {
+                errors.package_id = "Please, provide package_id";
               }
               return errors;
             }}
