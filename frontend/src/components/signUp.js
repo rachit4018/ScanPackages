@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import UserPool from "../userPool";
+import UserAuth from "../userAuth";
 
 function SignUp(props) {
 
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState(null);
     const [password, setPassword] = useState("");
+    const { login: authLogin } = UserAuth();
 
     const onSubmit = (event) => {
         event.preventDefault();
@@ -16,7 +18,7 @@ function SignUp(props) {
                 setMessage(err.message);
             } else {
                 console.log(data);
-                window.location = "/login";
+                window.location = "/verifyEmail";
             }
         });
     };

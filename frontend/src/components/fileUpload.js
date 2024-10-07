@@ -3,49 +3,30 @@ import PropTypes from "prop-types";
 import InfoCard from "./infoCard";
 import "../styles/fileUpload.css";
 
-
-import  CircularProgress  from "@mui/material/CircularProgress";
+import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Modal from "@mui/material/Modal";
-import { json } from "react-router-dom";
 
 FileUpload.propTypes = {};
 
 const serverUrl = "http://127.0.0.1:8000";
-
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 400,
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-};
 
 function FileUpload(props) {
   const [image, setImage] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [startLoading, setStartLoading] = useState(false);
   const [cardDetails, setCardDetails] = useState({
-    card_id:"",
+    package_id: "",
     b_name: "",
     phone: "",
-    email: "",
     address: "",
-    website: "",
     image_url: "",
     user_id: "",
+    recieved_date: "",
+    tracking_id: ""
   });
+  const [errorMessage, setErrorMessage] = useState(""); // State for error message
 
   const handleChangeInput = (event, key) => {
-    console.log("event", event.target.value, key);
-    // cardData[key] = event.target.value
-    // setCardData(cardData)
-    // props.cardDetails[key] = event.target.value;
     setCardDetails({ ...cardDetails, [key]: event.target.value });
   };
 
@@ -60,7 +41,7 @@ function FileUpload(props) {
     if (!jwtAccessToken || !localStorage.getItem("user_sub")) {
       window.location = "/login";
     }
-  });
+  }, []);
 
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -77,7 +58,6 @@ function FileUpload(props) {
 
   async function handleOnImageChange(e) {
     setImage(e.target.files[0]);
-    // const base64 = await convertToBase64(e.target.files[0]);
     let file = e.target.files[0];
     let converter = new Promise(function (resolve, reject) {
       const reader = new FileReader();
@@ -88,57 +68,77 @@ function FileUpload(props) {
     });
     let encodedString = await converter;
     setStartLoading(true);
-    fetch(serverUrl + "/images", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ filename: file.name, filebytes: encodedString }),
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        let fileId = result.fileId;
-        let fileUrl = result.fileUrl;
 
-        fetch(serverUrl + "/images/" + fileId + "/recognize_entities", {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(),
-        })
-          .then((response) => response.json())
-          .then((res) => {
-            let cardObj = {};
-            for(let i=0;i < res[0].length; i++) {
-                cardObj[res[0][i]] = res[1][i];
-            }
-            setCardDetails({
-              card_id: cardObj.card_id ? cardObj.card_id: '',
-              b_name: cardObj.b_name ? cardObj.b_name : '',
-              phone: cardObj.Telephone ? cardObj.Telephone : '',
-              address: cardObj.Address ? cardObj.Address : '',
-              website: cardObj.Website ? cardObj.Website : '',
-              email: cardObj.Email ? cardObj.Email : '',
-              user_id: cardObj.user_id ? cardObj.user_id:'',
-              image_url: null,
-            });
-            setStartLoading(false);
-          });
-      })
-      .catch((error) => {
-        console.log(error);
+    try {
+      let response = await fetch(serverUrl + "/images", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ filename: file.name, filebytes: encodedString }),
       });
+      let result = await response.json();
+      let fileId = result.fileId;
+      let fileUrl = result.fileUrl;
+
+      response = await fetch(serverUrl + "/images/" + fileId + "/recognize_entities", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(),
+      });
+      let res = await response.json();
+
+      // Check if there is an error in the response
+      if (res.status === 'error' || !res || !res[0] || !res[1]) {
+        // Set the error message and stop loading
+        setErrorMessage(res.message || "An unexpected error occurred.");
+        setStartLoading(false);
+        return; // Exit the function early
+      }
+
+      // Proceed with setting card details if no error
+      let cardObj = {};
+      for (let i = 0; i < res[0].length; i++) {
+        cardObj[res[0][i]] = res[1][i];
+      }
+      setCardDetails({
+        package_id: cardObj.package_id ? cardObj.package_id : '',
+        b_name: cardObj.b_name ? cardObj.b_name : '',
+        address: cardObj.Address ? cardObj.Address : '',
+        email: cardObj.Email ? cardObj.Email : '',
+        user_id: cardObj.user_id ? cardObj.user_id : '',
+        recieved_date: cardObj.recieved_date ? cardObj.recieved_date : '',
+        tracking_id: cardObj.tracking_id? cardObj.tracking_id: '',
+        image_url: null,
+      });
+    } catch (error) {
+      // Handle fetch or parsing errors
+      console.log(error);
+      setErrorMessage("An unexpected error occurred.");
+    } finally {
+      setStartLoading(false);
+    }
+  }
+
+  if (errorMessage) {
+    return (
+      <div className="error-body">
+        <div className="error-container">
+          <h1>Error</h1>
+          <p>{errorMessage}</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="body">
       <div className="container">
-        
         <h1>Scan Package</h1>
-
         <input
           id="file"
           name="file"
@@ -147,16 +147,13 @@ function FileUpload(props) {
           accept="image/*"
           onChange={handleOnImageChange}
         ></input>
-
         <label htmlFor="file"> + Upload an image </label>
         <br />
-
         {startLoading && (
           <Box sx={{ textAlign: "center", marginTop: "40px" }}>
             <CircularProgress size={60} disabled={startLoading} />
           </Box>
         )}
-
       </div>
       <div className="mainContainer">
         {imageUrl && (

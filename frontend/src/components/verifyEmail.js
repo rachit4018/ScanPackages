@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { login } from '../api/djangoAuth';
-import { CognitoUser, AuthenticationDetails } from "amazon-cognito-identity-js";
+import { useState } from "react";
+import { CognitoUser } from "amazon-cognito-identity-js";
 import UserPool from "../userPool";
-import userAuth from '../userAuth';
-function Login(props) {
-    const [email, setEmail] = useState("");
-    const [message, setMessage] = useState(null);
-    const [password, setPassword] = useState("");
-    const {login: authLogin } = userAuth();
 
-    const onSubmit = (event) => {
+
+function Verify(props){
+    const [verificationCode, setVerificationCode] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+    const [email,setEmail] = useState("");
+    const [successMessage, setSucessMessage] = useState("");
+
+    const onSubmit = event => {
         event.preventDefault();
 
         const user = new CognitoUser({
@@ -17,57 +17,48 @@ function Login(props) {
             Pool: UserPool,
         });
 
-        const authDetails = new AuthenticationDetails({
-            Username: email,
-            Password: password,
+        user.confirmRegistration(verificationCode, true, (err, result) =>{
+            if (err) {
+                console.error(err);
+                setErrorMessage(err.message);
+            } else {
+                setSucessMessage("Verification successful!");
+                window.location = "/login";
+            }
+
+            
         });
 
-        user.authenticateUser(authDetails, {
-            onSuccess: (data) => {
-                console.log("onSuccess: ", data);
-                localStorage.setItem('jwt_access_token', data.accessToken.jwtToken);
-                // localStorage.setItem('user_sub', 100); 
-
-                localStorage.setItem('user_sub', data.accessToken.payload.sub); 
-                window.location = '/upload-image';
-            },
-            onFailure: (err) => {
-                console.error("onFailure: ", err.message);
-                setMessage(err.message);
-            },
-            newPasswordRequired: (data) => {
-                console.log("newPasswordRequired: ", data);
-            },
-        });
     };
-
     return (
         <div style={styles.container}>
             <div style={styles.formContainer}>
                 <div style={styles.titleContainer}>
-                    <h2 style={styles.title}>Login</h2>
+                    <h2 style={styles.title}>Verify Account</h2>
                 </div>
                 <form onSubmit={onSubmit}>
                     <div style={styles.inputContainer}>
-                        <label htmlFor="email" style={styles.label}>Email</label>
+                        <label htmlFor="email" style={styles.label}>Email:</label>
                         <input
                             id="email"
                             type="email"
-                            onChange={(event) => setEmail(event.target.value)}
                             value={email}
+                            onChange={event => setEmail(event.target.value)}
                             placeholder="Enter your email"
                             style={styles.input}
+                            required
                         />
                     </div>
                     <div style={styles.inputContainer}>
-                        <label htmlFor="password" style={styles.label}>Password</label>
+                        <label htmlFor="verificationCode" style={styles.label}>Verification Code:</label>
                         <input
-                            id="password"
-                            type="password"
-                            placeholder="Enter your password"
-                            onChange={(event) => setPassword(event.target.value)}
-                            value={password}
+                            id="verificationCode"
+                            type="text"
+                            value={verificationCode}
+                            onChange={event => setVerificationCode(event.target.value)}
+                            placeholder="Enter the code sent to your email"
                             style={styles.input}
+                            required
                         />
                     </div>
                     <button
@@ -76,12 +67,17 @@ function Login(props) {
                         onMouseEnter={(e) => e.target.style.backgroundColor = '#2e8b57'}
                         onMouseLeave={(e) => e.target.style.backgroundColor = '#3CB371'}
                     >
-                        Login
+                        Verify
                     </button>
                 </form>
-                {message && (
-                    <div style={styles.messageContainer}>
-                        {message}
+                {errorMessage && (
+                    <div style={styles.messageContainerError}>
+                        {errorMessage}
+                    </div>
+                )}
+                {successMessage && (
+                    <div style={styles.messageContainerSuccess}>
+                        {successMessage}
                     </div>
                 )}
             </div>
@@ -142,7 +138,7 @@ const styles = {
         cursor: 'pointer',
         transition: 'background-color 0.3s',
     },
-    messageContainer: {
+    messageContainerError: {
         marginTop: '20px',
         backgroundColor: '#ffdddd',
         padding: '15px',
@@ -150,6 +146,14 @@ const styles = {
         color: '#d8000c',
         textAlign: 'center',
     },
-};
+    messageContainerSuccess: {
+        marginTop: '20px',
+        backgroundColor: '#ddffdd',
+        padding: '15px',
+        borderRadius: '5px',
+        color: '#28a745',
+        textAlign: 'center',
+    },
+}
 
-export default Login;
+export default Verify;
