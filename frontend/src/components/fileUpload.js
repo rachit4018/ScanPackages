@@ -5,9 +5,10 @@ import "../styles/fileUpload.css";
 
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
+import useSessionTimeout from "../useSessionTimeout";
 
-FileUpload.propTypes = {};
 
+const sessionTimeout = 2 * 60 * 1000; // 1-minute session timeout
 const serverUrl = "http://127.0.0.1:8000";
 
 function FileUpload(props) {
@@ -25,6 +26,7 @@ function FileUpload(props) {
     tracking_id: ""
   });
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
+  useSessionTimeout(sessionTimeout);
 
   const handleChangeInput = (event, key) => {
     setCardDetails({ ...cardDetails, [key]: event.target.value });

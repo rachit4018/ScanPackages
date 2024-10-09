@@ -1,13 +1,37 @@
-import React, { useState } from 'react';
-import { login } from '../api/djangoAuth';
+import React, { useState, useEffect } from 'react';
 import { CognitoUser, AuthenticationDetails } from "amazon-cognito-identity-js";
 import UserPool from "../userPool";
 import userAuth from '../userAuth';
+
+import { jwtDecode } from 'jwt-decode';  // Correct way to import as a named export
+
+
 function Login(props) {
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState(null);
     const [password, setPassword] = useState("");
-    const {login: authLogin } = userAuth();
+    const { login: authLogin, logout } = userAuth();
+
+    // Check if the user is already logged in
+    useEffect(() => {
+        const user = UserPool.getCurrentUser();
+        const token = localStorage.getItem('jwt_access_token');
+        
+        if (user && token) {
+            const decodedToken = jwtDecode(token);
+            const currentTime = Date.now() / 1000;
+            console.log(decodedToken.exp);
+            console.log(currentTime);
+            if (decodedToken.exp < currentTime) {
+                // Token expired, log the user out
+                logout();
+                window.location = '/login';  // Redirect to login
+            } else {
+                // User is authenticated and token is valid
+                window.location = '/upload-image';  // Redirect to upload page
+            }
+        }
+    }, [logout]);
 
     const onSubmit = (event) => {
         event.preventDefault();
@@ -26,9 +50,8 @@ function Login(props) {
             onSuccess: (data) => {
                 console.log("onSuccess: ", data);
                 localStorage.setItem('jwt_access_token', data.accessToken.jwtToken);
-                // localStorage.setItem('user_sub', 100); 
-
-                localStorage.setItem('user_sub', data.accessToken.payload.sub); 
+                localStorage.setItem('user_sub', data.accessToken.payload.sub);
+                authLogin(data.accessToken.jwtToken, data.accessToken.payload);
                 window.location = '/upload-image';
             },
             onFailure: (err) => {
@@ -37,6 +60,7 @@ function Login(props) {
             },
             newPasswordRequired: (data) => {
                 console.log("newPasswordRequired: ", data);
+                setMessage("New password required.");
             },
         });
     };
@@ -57,6 +81,7 @@ function Login(props) {
                             value={email}
                             placeholder="Enter your email"
                             style={styles.input}
+                            required
                         />
                     </div>
                     <div style={styles.inputContainer}>
@@ -68,6 +93,7 @@ function Login(props) {
                             onChange={(event) => setPassword(event.target.value)}
                             value={password}
                             style={styles.input}
+                            required
                         />
                     </div>
                     <button
@@ -89,6 +115,7 @@ function Login(props) {
     );
 }
 
+// Styling
 const styles = {
     container: {
         display: 'flex',

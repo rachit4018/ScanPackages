@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import useSessionTimeout from "../useSessionTimeout";
 import CRUDTable, {
   Fields,
   Field,
@@ -10,6 +11,7 @@ import "../styles/list.css";
 
 const serverUrl = "http://127.0.0.1:8000";
 
+const sessionTimeout = 2 * 60 * 1000; // 2-minute session timeout
 const DescriptionRenderer = ({ field }) => <textarea {...field} />;
 
 const SORTERS = {
@@ -114,6 +116,7 @@ const styles = {
 };
 
 function List(props) {
+  useSessionTimeout(sessionTimeout);
   const [search, setSearch] = useState("");
 
   useEffect(() => {

@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import "../styles/infoCard.css";
+import useSessionTimeout from "../useSessionTimeout";
 
 const serverUrl = "http://127.0.0.1:8000";
 
+const sessionTimeout = 2 * 60 * 1000; // 2-minute session timeout
 function InfoCard(props) {
+
   const [open, setOpen] = useState(false);
+  useSessionTimeout(sessionTimeout);
   const navigate = useNavigate(); // Call useNavigate at the top level of the component
 
   const handleClose = () => {
