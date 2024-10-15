@@ -3,6 +3,7 @@ import requests
 import base64
 import json
 import uuid
+import re
 from chalicelib.dynamo_service import DynamoService
 from chalicelib.business_card_list import BusinessCardList
 from chalicelib.business_card import BusinessCard
@@ -12,6 +13,7 @@ from chalicelib import textract_service
 from chalicelib import comprehend_services
 from chalicelib import named_entity_recognition_service
 from datetime import datetime
+from chalice import BadRequestError
 
 app = Chalice(app_name='Capabilities')
 app.debug = True
@@ -105,8 +107,12 @@ def recognize_image_entities(image_id):
             if scores[i] > max_id_score:
                 max_id_score = scores[i]
                 max_id = values[i]
-    package_id = str(uuid.uuid4())
-    user_id = '100'
+    numeric_package_id = str(uuid.uuid4())
+    package_id = ''.join(re.findall(r'\d+', numeric_package_id))
+
+    # Safely retrieve user_id
+    request_body = app.current_request.json_body
+    user_id =request_body.get('user_id')
     tracking_id = max_id
     merge = [package_id,b_name,email,address,user_id, recieved_date, tracking_id]
     comp_lines = [['package_id','b_name','Email','Address','user_id','recieved_date', 'tracking_id'],[package_id,b_name,email,address,user_id,recieved_date, tracking_id]]
@@ -136,7 +142,7 @@ def recognize_image_entities(image_id):
         return comp_lines
 @app.route('/cards/{user_id}', methods=['GET'], cors=True)
 def get_cards(user_id):
-    user_id = '100'
+    user_id =user_id
     cardlist_container = dynamo_service.search_cards(user_id)
     cards_list = []
     index = 1
