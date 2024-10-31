@@ -56,6 +56,33 @@ class DynamoService:
         table.put_item(Item=text)
         print(f"Created new item with details: {text}")
         return True
+    
+    def store_user(self, user_id,userEmail):
+        """Creates a new user record if not already present
+
+        Args:
+            user_id (str): User unique identifier
+            userEmail (str): User email
+
+        Returns:
+            bool: Operation result
+        """
+        dynamodb = boto3.resource("dynamodb")
+        table = dynamodb.Table("users")
+        
+        response = table.query(
+            KeyConditionExpression=Key('user_id').eq(user_id)
+        )
+        
+        # Check if the item exists
+        if response['Items']:
+            print("Item already exists with the same user_id.")
+            return True
+        
+        # If no such item exists, put the new item
+        table.put_item(Item={'user_id': user_id, 'Email': userEmail})
+        print(f"Created new item with details: {user_id, userEmail}")
+        return True
 
     def update_card(self, text):
         """Updates a new card record

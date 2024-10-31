@@ -28,7 +28,7 @@ function InfoCard(props) {
       },
       body: JSON.stringify({
         package_id: props.cardDetails.package_id,
-        user_id: localStorage.getItem("user_sub") || "",
+        user_id: localStorage.getItem("user_id") || "",
         b_name: props.cardDetails.b_name ? [props.cardDetails.b_name] : [""],
         Email: props.cardDetails.email ? [props.cardDetails.email] : [""],
         Address: props.cardDetails.address ? props.cardDetails.address : "",

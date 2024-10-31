@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import InfoCard from "./infoCard";
 import "../styles/fileUpload.css";
-
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import useSessionTimeout from "../useSessionTimeout";
 
-
-const sessionTimeout = 2 * 60 * 1000; // 1-minute session timeout
+const sessionTimeout = 1 * 60 * 1000; // 2-minute session timeout
 const serverUrl = "http://127.0.0.1:8000";
 
 function FileUpload(props) {
@@ -26,6 +24,8 @@ function FileUpload(props) {
     tracking_id: ""
   });
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
+  const [userId, setUserId] = useState(""); // State for user ID
+  const[userEmail, setUserEmail] = useState(""); // State for user email
   useSessionTimeout(sessionTimeout);
 
   const handleChangeInput = (event, key) => {
@@ -43,6 +43,17 @@ function FileUpload(props) {
     if (!jwtAccessToken || !localStorage.getItem("user_sub")) {
       window.location = "/login";
     }
+  }, []);
+
+  useEffect(() => {
+    // Extracting the user_id from the query string
+    const queryParams = new URLSearchParams(window.location.search);
+    const userIdFromUrl = queryParams.get('user_id');
+    const userEmailFromUrl = queryParams.get('email');
+    console.log("Retrieved User ID from URL:", userIdFromUrl);
+    console.log("Retrieved User Email from URL:", userEmailFromUrl);
+    setUserId(userIdFromUrl); // Set the user ID in state for later use
+    setUserEmail(userEmailFromUrl); // Set the user email in state for later use
   }, []);
 
   const convertToBase64 = (file) => {
@@ -72,14 +83,23 @@ function FileUpload(props) {
     setStartLoading(true);
 
     try {
+      console.log("Sending user_id:", userId);
+      console.log("Sending email:", userEmail);
+      // Pass user_id in the first API call
       let response = await fetch(serverUrl + "/images", {
         method: "POST",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ filename: file.name, filebytes: encodedString }),
+        body: JSON.stringify({ 
+          filename: file.name, 
+          filebytes: encodedString,
+          user_id: userId, // Include user_id in the request body
+          userEmail: userEmail // Include user_email here as well if needed
+        }),
       });
+
       let result = await response.json();
       let fileId = result.fileId;
       let fileUrl = result.fileUrl;
@@ -90,8 +110,12 @@ function FileUpload(props) {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(),
+        body: JSON.stringify({ 
+          user_id: userId, 
+          userEmail: userEmail // Include user_email here as well if needed
+        }) // Include user_id here as well if needed
       });
+
       let res = await response.json();
 
       // Check if there is an error in the response
@@ -114,7 +138,7 @@ function FileUpload(props) {
         email: cardObj.Email ? cardObj.Email : '',
         user_id: cardObj.user_id ? cardObj.user_id : '',
         recieved_date: cardObj.recieved_date ? cardObj.recieved_date : '',
-        tracking_id: cardObj.tracking_id? cardObj.tracking_id: '',
+        tracking_id: cardObj.tracking_id ? cardObj.tracking_id : '',
         image_url: null,
       });
     } catch (error) {

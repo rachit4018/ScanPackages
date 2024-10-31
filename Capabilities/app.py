@@ -61,6 +61,11 @@ def upload_image():
     file_name = request_data['filename']
     file_bytes = base64.b64decode(request_data['filebytes'])
     image_info = storage_service.upload_file(file_bytes, file_name)
+    request_body = app.current_request.json_body
+    user_id =request_body.get('user_id')
+    user_email = request_body.get('userEmail')
+
+    dynamo_service.store_user(user_id, user_email)
 
     return image_info
 
@@ -154,7 +159,8 @@ def get_cards(user_id):
             'Email': item['Email'],
             'Address': item['Address'],
             'recieved_date': item['recieved_date'],
-            'tracking_id': item['tracking_id']
+            'tracking_id': item['tracking_id'],
+            'user_id': item['user_id'],
         }
         cards_list.append(obj)
         index += 1

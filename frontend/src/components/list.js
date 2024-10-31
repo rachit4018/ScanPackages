@@ -42,7 +42,8 @@ const getSorter = (data) => {
 
 const service = {
   fetchItems: (payload) => {
-    let user_id = 100;
+    let user_id = localStorage.getItem("user_sub");
+    console.log("user id in list before callinf api = ", user_id);
     try {
       let promise = fetch(serverUrl + "/cards/" + user_id, {
         method: "GET",
@@ -68,7 +69,7 @@ const service = {
       },
       body: JSON.stringify({
         package_id: card.package_id ? card.package_id : "",
-        user_id: 100,
+        user_id: localStorage.getItem("user_id"),
         Email: card.Email ? card.Email : [""],
         b_name: card.b_name ? card.b_name : "",
         Address: card.Address ? card.Address : "",
@@ -82,7 +83,7 @@ const service = {
     return Promise.resolve(promise);
   },
   update: (data) => {
-    let user_id = 100;
+    let user_id = localStorage.getItem('user_id');
     data["user_id"] = user_id;
     let promise = fetch(serverUrl + "/cards", {
       method: "PUT",
@@ -97,7 +98,7 @@ const service = {
   },
   // Updated delete function
   delete: (data) => {
-    let user_id = 100;
+    let user_id = localStorage.getItem('user_id');
     return fetch(serverUrl + "/cards/" + user_id + "/" + data.package_id, {
       method: "DELETE",
       headers: {
@@ -150,6 +151,7 @@ function List(props) {
             />
             <Field name="recieved_date" label="recieved_date" hideInCreateForm readOnly/>
             <Field name="tracking_id" label="tracking_id" />
+            <Field name="user_id" label="user_id" hideInCreateForm readOnly/>
           </Fields>
 
           <UpdateForm
