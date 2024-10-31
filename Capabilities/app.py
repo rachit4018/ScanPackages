@@ -145,10 +145,9 @@ def recognize_image_entities(image_id):
         ]
     
         return comp_lines
-@app.route('/cards/{user_id}', methods=['GET'], cors=True)
-def get_cards(user_id):
-    user_id =user_id
-    cardlist_container = dynamo_service.search_cards(user_id)
+@app.route('/cards', methods=['GET'], cors=True)
+def get_cards():
+    cardlist_container = dynamo_service.search_cards()
     cards_list = []
     index = 1
     print(cardlist_container)

@@ -45,7 +45,7 @@ const service = {
     let user_id = localStorage.getItem("user_sub");
     console.log("user id in list before callinf api = ", user_id);
     try {
-      let promise = fetch(serverUrl + "/cards/" + user_id, {
+      let promise = fetch(serverUrl + "/cards/", {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -69,7 +69,7 @@ const service = {
       },
       body: JSON.stringify({
         package_id: card.package_id ? card.package_id : "",
-        user_id: localStorage.getItem("user_id"),
+        user_id: localStorage.getItem("user_sub"),
         Email: card.Email ? card.Email : [""],
         b_name: card.b_name ? card.b_name : "",
         Address: card.Address ? card.Address : "",
@@ -83,7 +83,7 @@ const service = {
     return Promise.resolve(promise);
   },
   update: (data) => {
-    let user_id = localStorage.getItem('user_id');
+    let user_id = localStorage.getItem("user_sub");
     data["user_id"] = user_id;
     let promise = fetch(serverUrl + "/cards", {
       method: "PUT",
@@ -98,7 +98,7 @@ const service = {
   },
   // Updated delete function
   delete: (data) => {
-    let user_id = localStorage.getItem('user_id');
+    let user_id = localStorage.getItem("user_sub");
     return fetch(serverUrl + "/cards/" + user_id + "/" + data.package_id, {
       method: "DELETE",
       headers: {

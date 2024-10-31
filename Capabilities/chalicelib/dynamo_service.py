@@ -57,7 +57,7 @@ class DynamoService:
         print(f"Created new item with details: {text}")
         return True
     
-    def store_user(self, user_id,userEmail):
+    def store_user(self, user_id, userEmail):
         """Creates a new user record if not already present
 
         Args:
@@ -153,7 +153,7 @@ class DynamoService:
                  table.put_item(Item=item)
         print(f"Created new item with name {text}")
 
-    def search_cards(self, user_id, filter='', page=1, pagesize=10):
+    def search_cards(self, filter='', page=1, pagesize=10):
         """Method for searching the cards of a particular user.
         It takes into account the page number and pagesize to retrieve the appropriate elements
         ordering the results first by card names.
@@ -171,8 +171,6 @@ class DynamoService:
         """
         self.dynamodb = boto3.client('dynamodb')
         self.table_name = self.table_name
-        if not user_id:
-            raise ValueError('user_id is a mandatory field')
 
         try:
             if filter:
@@ -192,12 +190,7 @@ class DynamoService:
                 # Empty search case - scan the table for items with the specified user_id
                 dynamodb = boto3.resource("dynamodb")
                 table = dynamodb.Table("PackageScan")
-                response = table.scan(
-                FilterExpression='user_id = :user_id',
-                ExpressionAttributeValues={
-                     ':user_id': user_id
-                        }
-                    )
+                response = table.scan()
 
                 items = response.get('Items', [])
                 for item in items:
